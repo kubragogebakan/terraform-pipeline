@@ -1,0 +1,29 @@
+version: 0.2
+
+phases:
+  install:
+    runtime-versions:
+      docker: 18
+  pre_build:
+    commands:
+      - pip install awscli --upgrade --user
+      - echo `aws --version`
+      - echo Logging in to Amazon ECR...
+      - eval $(aws ecr get-login --region "us-east-2" --no-include-email | sed 's|https://||')
+  build:
+    commands:
+      - echo Building the Docker image...
+      - docker build -t kubragogebakan .
+      - docker tag kubragogebakan:latest 440479593716.dkr.ecr.us-east-2.amazonaws.com/kubragogebakan:latest
+  post_build:
+    commands:
+      - echo Pushing the Docker images...
+      - docker push 440479593716.dkr.ecr.us-east-2.amazonaws.com/kubragogebakan:latest
+      - echo Writing image definitions file...
+      - printf '[{"name":"cb-app","imageUri":"%s"}]' 440479593716.dkr.ecr.us-east-2.amazonaws.com/kubragogebakan:latest > imagedefinitions.json
+      - aws ecs run-task --launch-type FARGATE --cluster "my-ecs-cluster" --task-definition "cb-app-task" --network-configuration "awsvpcConfiguration={subnets=["subnet-1a52b371", "subnet-5f3f6125"],securityGroups=["sg-05c443220ac678a24"],assignPublicIp=ENABLED}" 
+      - echo upgrading cb-app-task task definitions
+
+artifacts:
+  files: imagedefinitions.json
+  
