@@ -267,7 +267,7 @@ resource "aws_codepipeline" "pipeline" {
         Owner      = "kubragogebakan"
         Repo       = "hello-world"
         Branch     = "master"
-        OAuthToken = "2394206568e21abb5e8581328c078fcf7ca30b81" #GithubTokenCredential
+        OAuthToken = "*****"
       }
     }
   }
